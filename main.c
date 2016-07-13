@@ -60,40 +60,71 @@ PROGMEM const char usbHidReportDescriptor[63] = {
 };
 
 
-usbMsgLen_t usbFunctionSetup(uchar data[8]) {
+usbMsgLen_t usbFunctionSetup(uchar data[8]) 
+{
   usbRequest_t *rq = (void *)data;
 
-  // The following requests are never used. But since they are required by
-  // the specification, we implement them in this example.
-  if((rq->bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_CLASS) {
+  if((rq -> bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_CLASS)
+    {
+      switch(rq -> bRequest) 
+        {
+          // send "no keys pressed" if asked here
+        case USBRQ_HID_GET_REPORT:
+          usbMsgPtr = (void *)&reportBuffer;
+          reportBuffer.modifier = 0;
+          reportBuffer.keycode[0] = 0;
+          return sizeof(reportBuffer);
 
-    if(rq->bRequest == USBRQ_HID_GET_REPORT) {  
-      // wValue: ReportType (highbyte), ReportID (lowbyte)
-      usbMsgPtr = (void *)&reportBuffer; // we only have this one
-      return sizeof(reportBuffer);
-    } else if(rq->bRequest == USBRQ_HID_GET_IDLE) {
-      usbMsgPtr = &idleRate;
-      return 1;
-    } else if(rq->bRequest == USBRQ_HID_SET_IDLE) {
-      idleRate = rq->wValue.bytes[1];
+          // if wLength == 1 -> led state
+        case USBRQ_HID_SET_REPORT:
+          return (rq -> wLength.word == 1) ? USB_NO_MSG : 0;
+
+          // set idle rate:
+        case USBRQ_HID_GET_IDLE:
+          usbMsgPtr = &idleRate;
+          return 1;
+
+          // save idle rate as required by spec:
+        case USBRQ_HID_SET_IDLE:
+          idleRate = rq -> wValue.bytes[1];
+          return 0;
+        }
     }
+
+  // by default don't return any data:
+  return 0;
+}
+
+usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len)
+{
+  if(data[0] == LED_state)
+    return 1;
+  else
+    LED_state = data[0];
+
+  // LED state changed:
+  if(LED_state & NUMLOCK)
+    {
+      // LED ON
+      PORTB |= 1 << PB0;
+    } else 
+    {
+      // LED OFF
+      PORTB &= ~(1 << PB0);
   }
-  return 0; // by default don't return any data
+  return 1;
 }
 
-/* -- initial implementation of the usbFunctionSetup
-USB_PUBLIC uchar usbFunctionSetup(uchar data[8]) {
-  return 0; // do nothing for now
-}
-*/
 
-
-int main() {
+int main() 
+{
   uchar i;
-  int rand = 1234;
 
   // enable 1 sec watchdog timer:
   wdt_enable(WDTO_1S);
+
+  // PB0 as output:
+  DDRB = 1 << PB0;
 
   usbInit();
 
@@ -112,7 +143,7 @@ int main() {
   while(1) {
     wdt_reset();
     usbPoll();
-
+    /*
     if(usbInterruptIsReady()) {
       rand = (rand * 109 + 89) % 251;
 
@@ -121,7 +152,7 @@ int main() {
 
       usbSetInterrupt((void *)&reportBuffer, sizeof(reportBuffer));
     }
-
+    */
   }
 
   return 0;
