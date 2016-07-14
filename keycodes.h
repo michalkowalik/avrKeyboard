@@ -42,11 +42,8 @@
 #define SKBD_POWER			0x30
 
 
-
-
-
-
-PROGMEM char usbHidReportDescriptor[63] = {    /* USB report descriptor */
+/* USB report descriptor, size must match usbconfig.h */
+PROGMEM const char usbHidReportDescriptor[63] = { 
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
     0x09, 0x06,                    // USAGE (Keyboard)
     0xa1, 0x01,                    // COLLECTION (Application)
@@ -78,12 +75,9 @@ PROGMEM char usbHidReportDescriptor[63] = {    /* USB report descriptor */
     0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
     0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
     0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
-    0xc0                           // END_COLLECTION  
+    0xc0                           // END_COLLECTION     
 };
-/* Since we define only one feature report, we don't use report-IDs (which
- * would be the first byte of the report). The entire report consists of 128
- * opaque data bytes.
- */
+
 
 
 /// Codes for modifier-keys.
@@ -102,7 +96,7 @@ enum modifiers {
 
 
 
-PROGMEM uint8_t  sunkeycodes[]= {
+PROGMEM const uint8_t  sunkeycodes[]= {
   0,      0x78,   0,      0x79,   0,      58,     59,     67,	/* 0x00-0x07  (volume up and volume down disabled)*/
   60,     68,     61,     69,     62,     230,    63,     0,	/* 0x08-0x0f */
   64,     65,     66,     226,    82,     72,     70,     71,	/* 0x10-0x17 */

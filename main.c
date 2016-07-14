@@ -7,6 +7,9 @@
 #include "usbdrv.h"
 #include <util/delay.h>
 
+#include "keycodes.h"
+#include "sun_defs.h"
+
 #define NUMLOCK 1
 #define CAPSLOCK 2
 #define SCROLLLOCK 4
@@ -23,41 +26,12 @@ volatile static uchar LED_state = 0xff;
 // repeat rate for keyboards
 static uchar idleRate;
 
-/* USB report descriptor, size must match usbconfig.h */
-PROGMEM const char usbHidReportDescriptor[63] = { 
-    0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
-    0x09, 0x06,                    // USAGE (Keyboard)
-    0xa1, 0x01,                    // COLLECTION (Application)
-    0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
-    0x19, 0xe0,                    //   USAGE_MINIMUM (Keyboard LeftControl)
-    0x29, 0xe7,                    //   USAGE_MAXIMUM (Keyboard Right GUI)
-    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //   LOGICAL_MAXIMUM (1)
-    0x75, 0x01,                    //   REPORT_SIZE (1)
-    0x95, 0x08,                    //   REPORT_COUNT (8)
-    0x81, 0x02,                    //   INPUT (Data,Var,Abs)
-    0x95, 0x01,                    //   REPORT_COUNT (1)
-    0x75, 0x08,                    //   REPORT_SIZE (8)
-    0x81, 0x03,                    //   INPUT (Cnst,Var,Abs)
-    0x95, 0x05,                    //   REPORT_COUNT (5)
-    0x75, 0x01,                    //   REPORT_SIZE (1)
-    0x05, 0x08,                    //   USAGE_PAGE (LEDs)
-    0x19, 0x01,                    //   USAGE_MINIMUM (Num Lock)
-    0x29, 0x05,                    //   USAGE_MAXIMUM (Kana)
-    0x91, 0x02,                    //   OUTPUT (Data,Var,Abs)
-    0x95, 0x01,                    //   REPORT_COUNT (1)
-    0x75, 0x03,                    //   REPORT_SIZE (3)
-    0x91, 0x03,                    //   OUTPUT (Cnst,Var,Abs)
-    0x95, 0x06,                    //   REPORT_COUNT (6)
-    0x75, 0x08,                    //   REPORT_SIZE (8)
-    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
-    0x25, 0x65,                    //   LOGICAL_MAXIMUM (101)
-    0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
-    0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
-    0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
-    0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
-    0xc0                           // END_COLLECTION     
-};
+// send byte to keyb:
+static void uart_putchar(uchar c)
+{
+	loop_until_bit_is_set(UCSRA, UDRE);
+    UDR = c;
+}
 
 
 usbMsgLen_t usbFunctionSetup(uchar data[8]) 
@@ -97,12 +71,30 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
 
 usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len)
 {
+  uchar cLED = 0;
+
   if(data[0] == LED_state)
     return 1;
   else
     LED_state = data[0];
 
-  // LED state changed:
+  if (LED_state & USB_LED_NLOCK) {
+    cLED |= 0x01;
+  }
+  if (LED_state & USB_LED_CLOCK) {
+    cLED |= 0x08;
+  }
+  if (LED_state & USB_LED_SCRLCK) {
+    cLED |= 0x04;
+  }
+  if (LED_state & USB_LED_CMPOSE) {
+    cLED |= 0x02;
+  }
+  uart_putchar(SKBDCMD_SETLED);
+  uart_putchar(cLED);
+
+
+  // LED state changed: - DEV board only!
   if(LED_state & NUMLOCK)
     {
       // LED ON
@@ -115,6 +107,57 @@ usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len)
   return 1;
 }
 
+static int usartInit()
+{
+  // Turn on the transmission and reception circuitry
+   UCSRB |= (1 << RXEN) | (1 << TXEN);
+   // Use 8-bit character sizes
+   UCSRC |= (1 << URSEL) | (1 << UCSZ0) | (1 << UCSZ1);
+   // Load lower 8-bits of the baud rate value into the low byte of the UBRR register
+   UBRRL = BAUD_PRESCALE; 
+   // Load upper 8-bits of the baud rate value into the high byte of the UBRR register
+   UBRRH = (BAUD_PRESCALE >> 8);
+   // Enable the USART Recieve Complete interrupt (USART_RXC)  (( RXCIE ? RCXIE  ))
+   UCSRB |= (1 << RXCIE); 
+ 
+  return 0;
+}
+
+void blinkB1()
+{
+  PORTB |= 1 << PB1;
+  _delay_ms(50);
+  PORTB &= ~(1 << PB1);
+}
+
+void blinkB2()
+{
+  PORTB |= 1 << PB2;
+  _delay_ms(50);
+  PORTB &= ~(1 << PB2);
+}
+
+// Interrupt handling:
+
+// debug only, blink LED on TX:
+ISR(USART_TXC_vect)
+{
+  blinkB2();
+}
+
+
+// Process bytes coming from the keyboard.
+ISR(USART_RXC_vect)
+{
+  char ReceivedByte;
+  char sendByte[2];
+  
+  // Fetch the recieved byte value into the variable "ByteReceived"
+  ReceivedByte = UDR;
+  
+  // blink LED on port B1:
+  blinkB1();
+}
 
 int main() 
 {
@@ -123,9 +166,11 @@ int main()
   // enable 1 sec watchdog timer:
   wdt_enable(WDTO_1S);
 
-  // PB0 as output:
-  DDRB = 1 << PB0;
+  // Port B as output:
+  DDRB = 0xFF;
 
+  usartInit();
+  _delay_ms(100);
   usbInit();
 
   // force re-enumeration:
