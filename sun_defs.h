@@ -58,5 +58,9 @@
 #define KEY_CUT 0x61
 
 // function definitions:
-
+void blinkB1();
+static int usartInit();
+static void uart_putchar(uchar c);
 static uchar buildUsbReport(uchar rb);
+usbMsgLen_t usbFunctionSetup(uchar data[8]);
+usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len);

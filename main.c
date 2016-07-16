@@ -150,13 +150,6 @@ void blinkB1()
   PORTB &= ~(1 << PB1);
 }
 
-void blinkB2()
-{
-  PORTB |= 1 << PB2;
-  _delay_ms(50);
-  PORTB &= ~(1 << PB2);
-}
-
 // Interrupt handling:
 // Process bytes coming from the keyboard.
 ISR(USART_RXC_vect)
