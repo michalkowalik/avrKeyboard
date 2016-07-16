@@ -56,3 +56,7 @@
 #define KEY_PASTE 0x49
 #define KEY_FIND 0x5F
 #define KEY_CUT 0x61
+
+// function definitions:
+
+static uchar buildUsbReport(uchar rb);

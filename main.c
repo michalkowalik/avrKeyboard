@@ -29,8 +29,8 @@ static uchar idleRate;
 // send byte to keyb:
 static void uart_putchar(uchar c)
 {
-	loop_until_bit_is_set(UCSRA, UDRE);
-    UDR = c;
+  loop_until_bit_is_set(UCSRA, UDRE);
+  UDR = c;
 }
 
 
@@ -68,6 +68,26 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
   // by default don't return any data:
   return 0;
 }
+
+// build USB report buffer - 
+// based on the array in keycodes.h
+static uchar buildUsbReport(uchar rb) 
+{
+
+  // 0: key down, key up otherwise
+  uchar keyUp = rb & 0x80;
+
+  uchar usbKey = pgm_read_byte(&(sunkeycodes[rb & 0x7f]));
+
+  if(usbKey == 0)
+    return 0;
+
+  
+
+  // key was pressed
+  return 1;
+}
+
 
 usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len)
 {
@@ -138,14 +158,6 @@ void blinkB2()
 }
 
 // Interrupt handling:
-
-// debug only, blink LED on TX:
-ISR(USART_TXC_vect)
-{
-  blinkB2();
-}
-
-
 // Process bytes coming from the keyboard.
 ISR(USART_RXC_vect)
 {
