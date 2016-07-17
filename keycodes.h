@@ -97,7 +97,7 @@ enum modifiers {
 
 
 PROGMEM const uint8_t  sunkeycodes[]= {
-  0,      0x78,   129,      0x79,   128,      58,     59,     67,	/* 0x00-0x07  (volume up and volume down disabled)*/
+  0,      0x78,   129,    0x79,   128,    58,     59,     67,	/* 0x00-0x07 */
   60,     68,     61,     69,     62,     230,    63,     0,	/* 0x08-0x0f */
   64,     65,     66,     226,    82,     72,     70,     71,	/* 0x10-0x17 */
   80,     0x76,   0x7A,   81,     79,     41,     30,     31,	/* 0x18-0x1f */
@@ -116,6 +116,11 @@ PROGMEM const uint8_t  sunkeycodes[]= {
 };
 
 
+typedef struct {
+  uint8_t modifier;
+  uint8_t reserved;
+  uint8_t keycode[6];
+} report_t;
 
 
 

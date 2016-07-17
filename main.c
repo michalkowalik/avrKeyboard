@@ -14,11 +14,7 @@
 #define CAPSLOCK 2
 #define SCROLLLOCK 4
 
-typedef struct {
-  uint8_t modifier;
-  uint8_t reserved;
-  uint8_t keycode[6];
-} report_t;
+static int newUsartByte = 0;
 
 static report_t reportBuffer;
 volatile static uchar LED_state = 0xff;
@@ -76,13 +72,48 @@ static uchar buildUsbReport(uchar rb)
 
   // 0: key down, key up otherwise
   uchar keyUp = rb & 0x80;
+  uchar cnt;
 
   uchar usbKey = pgm_read_byte(&(sunkeycodes[rb & 0x7f]));
 
   if(usbKey == 0)
     return 0;
 
-  
+  // check modifier keys:
+  if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
+    {
+      if (keyUp)
+        {
+          reportBuffer.modifier &= ~(1 << (usbKey - 0xE0));
+        }
+      else {
+        reportBuffer.modifier |= (1 << (usbKey -0xE0)) ;
+      }
+    }
+
+  // check normal keys:
+  if (keyUp) 
+    {
+      for (cnt = 0; cnt < sizeof reportBuffer.keycode; ++cnt)
+        {
+          if (reportBuffer.keycode[cnt] == usbKey)
+            {
+              reportBuffer.keycode[cnt] = 0;
+              break;
+            }
+        }
+    }
+  else 
+    {
+      for (cnt = 0; cnt < sizeof reportBuffer.keycode; ++cnt)
+        {
+          if (reportBuffer.keycode[cnt] == 0)
+            {
+              reportBuffer.keycode[cnt] = usbKey;
+              break;
+            }
+        }
+    }
 
   // key was pressed
   return 1;
@@ -115,6 +146,7 @@ usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len)
 
 
   // LED state changed: - DEV board only!
+  // remove from the final code, or add a "ifdef DEBUG"
   if(LED_state & NUMLOCK)
     {
       // LED ON
@@ -154,19 +186,25 @@ void blinkB1()
 // Process bytes coming from the keyboard.
 ISR(USART_RXC_vect)
 {
-  char ReceivedByte;
-  char sendByte[2];
+  char receivedByte;
   
   // Fetch the recieved byte value into the variable "ByteReceived"
-  ReceivedByte = UDR;
+  receivedByte = UDR;
   
   // blink LED on port B1:
-  blinkB1();
+  // debug only!
+  // blinkB1();
+
+  if (buildUsbReport(receivedByte))
+    newUsartByte = 1;
 }
 
 int main() 
 {
+  uint8_t updateNeeded = 0;
   uchar i;
+
+  uchar idleCounter = 0;
 
   // enable 1 sec watchdog timer:
   wdt_enable(WDTO_1S);
@@ -177,6 +215,8 @@ int main()
   usartInit();
   _delay_ms(100);
   usbInit();
+
+  TCCR0 = 5;      /* timer 0 prescaler: 1024 */
 
   // force re-enumeration:
   usbDeviceDisconnect();
@@ -193,16 +233,34 @@ int main()
   while(1) {
     wdt_reset();
     usbPoll();
-    /*
-    if(usbInterruptIsReady()) {
-      rand = (rand * 109 + 89) % 251;
 
-      reportBuffer.dx = (rand&0xf) - 8;
-      reportBuffer.dy = ((rand&0xf0) >> 4) - 8;
+    // do I really need it?
+    updateNeeded = newUsartByte;
 
-      usbSetInterrupt((void *)&reportBuffer, sizeof(reportBuffer));
-    }
-    */
+
+    // check timer if we need periodic reports
+    if (TIFR & (1 << TOV0))
+      {
+        TIFR = (1 << TOV0); // reset flag
+        if (idleRate != 0)
+          { // do we need periodic reports?
+            if(idleCounter > 4){ // yes, but not yet
+              idleCounter -= 5; // 22ms in units of 4ms
+            } 
+            else 
+              { // yes, it is time now
+                updateNeeded = 1;
+                idleCounter = idleRate;
+              }
+          }
+      }
+
+    if (updateNeeded && usbInterruptIsReady())
+      {
+        updateNeeded = 0;
+        newUsartByte = 0;
+        usbSetInterrupt((void *)&reportBuffer, sizeof reportBuffer);
+      }
   }
 
   return 0;
