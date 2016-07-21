@@ -1,21 +1,12 @@
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/wdt.h>
+/*
+  Michal Kowalik, 2016
+ */
 
-#define F_CPU 16000000L
-
-#include "usbdrv.h"
-#include <util/delay.h>
-
-#include "keycodes.h"
 #include "sun_defs.h"
+#include "keycodes.h"
 
-#define NUMLOCK 1
-#define CAPSLOCK 2
-#define SCROLLLOCK 4
 
 static int newUsartByte = 0;
-
 static report_t reportBuffer;
 volatile static uchar LED_state = 0xff;
 
@@ -143,19 +134,6 @@ usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len)
   }
   uart_putchar(SKBDCMD_SETLED);
   uart_putchar(cLED);
-
-
-  // LED state changed: - DEV board only!
-  // remove from the final code, or add a "ifdef DEBUG"
-  if(LED_state & NUMLOCK)
-    {
-      // LED ON
-      PORTB |= 1 << PB0;
-    } else 
-    {
-      // LED OFF
-      PORTB &= ~(1 << PB0);
-  }
   return 1;
 }
 
@@ -191,10 +169,6 @@ ISR(USART_RXC_vect)
   // Fetch the recieved byte value into the variable "ByteReceived"
   receivedByte = UDR;
   
-  // blink LED on port B1:
-  // debug only!
-  // blinkB1();
-
   if (buildUsbReport(receivedByte))
     newUsartByte = 1;
 }
@@ -205,6 +179,10 @@ int main()
   uchar i;
 
   uchar idleCounter = 0;
+
+  // zeros in the report buffer:
+  for (i = 0; i < sizeof reportBuffer.keycode; ++i) 
+      reportBuffer.keycode[i] = 0;
 
   // enable 1 sec watchdog timer:
   wdt_enable(WDTO_1S);
@@ -226,6 +204,8 @@ int main()
   }
 
   usbDeviceConnect();
+
+  blinkB1();
 
   // enable interrupts:
   sei();
