@@ -47,13 +47,6 @@
 #define KEY_POWER 0x30
 #define KEY_COMPOSE  0x43
 
-enum ReportIds
-{
-    ID_Unknown = 0,
-    ID_Keyboard,
-    ID_Consumer
-};
-
 enum HID_ConsumerCodes
 {
     CKEY_Mute       = 0xE2,
@@ -143,6 +136,15 @@ typedef struct {
   uint8_t reserved;
   uint8_t keycode[6];
 } report_t;
+
+
+// there will be more than one report to use:
+enum ReportIds
+{
+    ID_Unknown = 0,
+    ID_Keyboard,
+    ID_Consumer
+};
 
 // report buffer as a plain array:
 uchar ReportBuffer[8];
