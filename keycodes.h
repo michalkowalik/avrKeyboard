@@ -54,13 +54,22 @@ enum HID_ConsumerCodes
     CKEY_VolumeDown = 0xEA,
 };
 
+// there will be more than one report to use:
+enum ReportIds
+{
+    IDUnknown = 0,
+    IDKeyboard,
+    IDConsumer
+};
+
 /* USB report descriptor, size must match usbconfig.h */
 
-PROGMEM const char usbHidReportDescriptor[70] = {
+PROGMEM const char usbHidReportDescriptor[98] = {
+    // 65 bytes - keyboard collection
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
     0x09, 0x06,                    // USAGE (Keyboard)
     0xa1, 0x01,                    // COLLECTION (Application)
-    0x85, 0x4b,                    //   REPORT_ID (75)
+    0x85, IDKeyboard,              //   REPORT_ID (75)
     0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
     0x19, 0xe0,                    //   USAGE_MINIMUM (Keyboard LeftControl)
     0x29, 0xe7,                    //   USAGE_MAXIMUM (Keyboard Right GUI)
@@ -71,15 +80,30 @@ PROGMEM const char usbHidReportDescriptor[70] = {
     0x81, 0x02,                    //   INPUT (Data,Var,Abs)
     0x95, 0x01,                    //   REPORT_COUNT (1)
     0x75, 0x08,                    //   REPORT_SIZE (8)
+    0x81, 0x03,                    //   INPUT (Cnst,Var,Abs)
+    0x95, 0x05,                    //   REPORT_COUNT (5)
+    0x75, 0x01,                    //   REPORT_SIZE (1)
+    0x05, 0x08,                    //   USAGE_PAGE (LEDs)
+    0x19, 0x01,                    //   USAGE_MINIMUM (Num Lock)
+    0x29, 0x05,                    //   USAGE_MAXIMUM (Kana)
+    0x91, 0x02,                    //   OUTPUT (Data,Var,Abs)
+    0x95, 0x01,                    //   REPORT_COUNT (1)
+    0x75, 0x03,                    //   REPORT_SIZE (3)
+    0x91, 0x03,                    //   OUTPUT (Cnst,Var,Abs)
+    0x95, 0x06,                    //   REPORT_COUNT (6)
+    0x75, 0x08,                    //   REPORT_SIZE (8)
+    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
     0x25, 0x65,                    //   LOGICAL_MAXIMUM (101)
+    0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
     0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
     0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
     0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
     0xc0,                          // END_COLLECTION
+    // 33 bytes - consumer collection
     0x05, 0x0c,                    // USAGE_PAGE (Consumer Devices)
     0x09, 0x01,                    // USAGE (Consumer Control)
     0xa1, 0x01,                    // COLLECTION (Application)
-    0x85, 0x4c,                    //   REPORT_ID (76)
+    0x85, IDConsumer,              //   REPORT_ID (76)
     0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
     0x25, 0x01,                    //   LOGICAL_MAXIMUM (1)
     0x09, 0xe9,                    //   USAGE (Volume Up)
@@ -130,23 +154,19 @@ PROGMEM const uint8_t  sunkeycodes[]= {
   227,    44,     231,    78,     0,      87,     0,      0 	/* 0x78-0x7f */
 };
 
-
+// keyboard buffer type:
 typedef struct {
+  uint8_t id;
   uint8_t modifier;
   uint8_t reserved;
-  uint8_t keycode[6];
-} report_t;
+  uint8_t keycode[5];
+} report_keyboard;
 
+// consumer defice buffer type:
+typedef struct {
+  uint8_t id;
+  uint8_t keycode;
+} report_consumer;
 
-// there will be more than one report to use:
-enum ReportIds
-{
-    ID_Unknown = 0,
-    ID_Keyboard,
-    ID_Consumer
-};
-
-// report buffer as a plain array:
-uchar ReportBuffer[8];
 
 
