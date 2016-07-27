@@ -58,8 +58,8 @@ enum HID_ConsumerCodes
 enum ReportIds
 {
     IDUnknown = 0,
-    IDKeyboard,
-    IDConsumer
+    IDKeyboard = 1,
+    IDConsumer = 2
 };
 
 /* USB report descriptor, size must match usbconfig.h */
@@ -159,7 +159,7 @@ typedef struct {
   uint8_t id;
   uint8_t modifier;
   uint8_t reserved;
-  uint8_t keycode[5];
+  uint8_t keycode[6];
 } report_keyboard;
 
 // consumer defice buffer type:

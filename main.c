@@ -34,17 +34,27 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
           // send "no keys pressed" if asked here
         case USBRQ_HID_GET_REPORT:
           reportType = rq->wValue.bytes[0];
-          usbMsgPtr = (void *)&keyReportBuffer;
+          if(reportType == 2) 
+            {
+              blinkB2();
+              usbMsgPtr = (void *)&conReportBuffer;
+              return sizeof(conReportBuffer);
+            }
+          else
+            {
+              blinkB1();
+              usbMsgPtr = (void *)&keyReportBuffer;
 
-          // report Type: - TODO: double check if it will work!:
-          keyReportBuffer.id = IDKeyboard;
+              // report Type: - TODO: double check if it will work!:
+              keyReportBuffer.id = IDKeyboard;
 
-          // modifiers:
-          keyReportBuffer.modifier = 0;
+              // modifiers:
+              keyReportBuffer.modifier = 0;
 
-          // empty key buffer:
-          keyReportBuffer.keycode[0] = 0;
-          return sizeof(keyReportBuffer);
+              // empty key buffer:
+              keyReportBuffer.keycode[0] = 0;
+              return sizeof(keyReportBuffer);
+            }
 
           // if wLength == 1 -> led state
         case USBRQ_HID_SET_REPORT:
@@ -80,8 +90,6 @@ static uchar buildUsbReport(uchar rb)
   if(usbKey == 0)
     return 0;
 
-  blinkB1();
-
   // Report ID:
   keyReportBuffer.id = IDKeyboard;
   // check modifier if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
@@ -98,7 +106,6 @@ static uchar buildUsbReport(uchar rb)
   // check normal keys:
   if (keyUp) 
     {
-      blinkB2();
       for (cnt = 0; cnt < sizeof keyReportBuffer.keycode; ++cnt)
         {
           if (keyReportBuffer.keycode[cnt] == usbKey)
@@ -181,6 +188,12 @@ void blinkB2()
   PORTB &= ~(1 << PB2);
 }
 
+void blinkB3()
+{
+  PORTB |= 1 << PB3;
+  _delay_ms(50);
+  PORTB &= ~(1 << PB3);
+}
 
 // Interrupt handling:
 // Process bytes coming from the keyboard.
