@@ -9,10 +9,6 @@
 
 
 // function definitions:
-void blinkB1();
-void blinkB2();
-void blinkB3();
-
 static int usartInit();
 static void uart_putchar(uchar c);
 static uchar buildUsbReport(uchar rb);

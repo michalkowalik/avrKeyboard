@@ -1,10 +1,9 @@
 /*
   Michal Kowalik, 2016
  */
-
 #include "sun_defs.h"
 #include "keycodes.h"
-
+#include "utils.h"
 
 static int newUsartByte = 0;
 static report_keyboard keyReportBuffer;
@@ -171,26 +170,6 @@ static int usartInit()
   return 0;
 }
 
-void blinkB1()
-{
-  PORTB |= 1 << PB1;
-  _delay_ms(50);
-  PORTB &= ~(1 << PB1);
-}
-
-void blinkB2()
-{
-  PORTB |= 1 << PB2;
-  _delay_ms(50);
-  PORTB &= ~(1 << PB2);
-}
-
-void blinkB3()
-{
-  PORTB |= 1 << PB3;
-  _delay_ms(50);
-  PORTB &= ~(1 << PB3);
-}
 
 // Interrupt handling:
 // Process bytes coming from the keyboard.

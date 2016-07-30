@@ -17,7 +17,7 @@
 
 
 /* USB equivalents. order of bits are different from SUN's definition. */
-#define USB_LED_NLOCK          	0x01   /* Num-lock */
+#define USB_LED_NLOCK          	0x01   /* Num-locgk */
 #define USB_LED_CLOCK          	0x02   /* Caps-lock */
 #define USB_LED_SCRLCK        	0x04   /* Scroll-lock */
 #define USB_LED_CMPOSE        	0x08   /* Compose */
