@@ -42,10 +42,7 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
             }
           else
             {
-              blinkB1();
               usbMsgPtr = (void *)&keyReportBuffer;
-
-              // report Type: - TODO: double check if it will work!:
               keyReportBuffer.id = IDKeyboard;
 
               // modifiers:
@@ -264,6 +261,7 @@ int main()
             } 
             else 
               { // yes, it is time now
+                blinkB1();
                 updateNeeded = 1;
                 idleCounter = idleRate;
               }
@@ -274,6 +272,7 @@ int main()
       {
         updateNeeded = 0;
         newUsartByte = 0;
+        blinkB2();
         usbSetInterrupt((void *)&keyReportBuffer, sizeof keyReportBuffer);
       }
   }
