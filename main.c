@@ -56,6 +56,22 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
   return 0;
 }
 
+void blinkB1()
+{
+  PORTB |= 1 << PB1;
+  _delay_ms(50);
+  PORTB &= ~(1 << PB1);
+}
+
+void blinkB2()
+{
+  PORTB |= 1 << PB2;
+  _delay_ms(50);
+  PORTB &= ~(1 << PB2);
+}
+
+
+
 // build USB report buffer - 
 // based on the array in keycodes.h
 static uchar buildUsbReport(uchar rb) 
@@ -70,6 +86,7 @@ static uchar buildUsbReport(uchar rb)
   if(usbKey == 0)
     return 0;
 
+ 
   // check modifier keys:
   if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
     {
@@ -77,9 +94,10 @@ static uchar buildUsbReport(uchar rb)
         {
           reportBuffer.modifier &= ~(1 << (usbKey - 0xE0));
         }
-      else {
-        reportBuffer.modifier |= (1 << (usbKey -0xE0)) ;
-      }
+      else 
+        {
+          reportBuffer.modifier |= (1 << (usbKey -0xE0)) ;
+        }
     }
 
   // check normal keys:
@@ -151,13 +169,6 @@ static int usartInit()
    UCSRB |= (1 << RXCIE); 
  
   return 0;
-}
-
-void blinkB1()
-{
-  PORTB |= 1 << PB1;
-  _delay_ms(50);
-  PORTB &= ~(1 << PB1);
 }
 
 // Interrupt handling:

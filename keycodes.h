@@ -60,6 +60,7 @@ PROGMEM const char usbHidReportDescriptor[63] = {
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
     0x09, 0x06,                    // USAGE (Keyboard)
     0xa1, 0x01,                    // COLLECTION (Application)
+
     0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
     0x19, 0xe0,                    //   USAGE_MINIMUM (Keyboard LeftControl)
     0x29, 0xe7,                    //   USAGE_MAXIMUM (Keyboard Right GUI)
@@ -73,6 +74,7 @@ PROGMEM const char usbHidReportDescriptor[63] = {
     0x81, 0x03,                    //   INPUT (Cnst,Var,Abs)
     0x95, 0x05,                    //   REPORT_COUNT (5)
     0x75, 0x01,                    //   REPORT_SIZE (1)
+
     0x05, 0x08,                    //   USAGE_PAGE (LEDs)
     0x19, 0x01,                    //   USAGE_MINIMUM (Num Lock)
     0x29, 0x05,                    //   USAGE_MAXIMUM (Kana)
@@ -86,6 +88,7 @@ PROGMEM const char usbHidReportDescriptor[63] = {
     0x25, 0x65,                    //   LOGICAL_MAXIMUM (101)
     0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
     0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
+    //0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
     0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
     0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
     0xc0                           // END_COLLECTION
