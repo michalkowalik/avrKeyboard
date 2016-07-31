@@ -10,6 +10,8 @@ static report_keyboard keyReportBuffer;
 static report_consumer conReportBuffer;
 volatile static uchar LED_state = 0xff;
 
+uchar ReportBuffer[8];
+
 // repeat rate for keyboards
 static uchar idleRate;
 
@@ -33,24 +35,17 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
           // send "no keys pressed" if asked here
         case USBRQ_HID_GET_REPORT:
           reportType = rq->wValue.bytes[0];
-          if(reportType == 2) 
-            {
-              blinkB2();
-              usbMsgPtr = (void *)&conReportBuffer;
-              return sizeof(conReportBuffer);
-            }
-          else
-            {
-              usbMsgPtr = (void *)&keyReportBuffer;
-              keyReportBuffer.id = IDKeyboard;
+          usbMsgPtr = ReportBuffer;
+          ReportBuffer[0] = IDKeyboard;
+          
+          // modifiers:
+          ReportBuffer[1] = 0;
+          
+          // empty key buffer:
+          ReportBuffer[2] = 0;
+          ReportBuffer[3] = 0;
 
-              // modifiers:
-              keyReportBuffer.modifier = 0;
-
-              // empty key buffer:
-              keyReportBuffer.keycode[0] = 0;
-              return sizeof(keyReportBuffer);
-            }
+          return sizeof(ReportBuffer);
 
           // if wLength == 1 -> led state
         case USBRQ_HID_SET_REPORT:
@@ -87,37 +82,37 @@ static uchar buildUsbReport(uchar rb)
     return 0;
 
   // Report ID:
-  keyReportBuffer.id = IDKeyboard;
+  ReportBuffer[0] = IDKeyboard;
   // check modifier if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
     {
       if (keyUp)
         {
-          keyReportBuffer.modifier &= ~(1 << (usbKey - 0xE0));
+          ReportBuffer[1] &= ~(1 << (usbKey - 0xE0));
         }
       else {
-        keyReportBuffer.modifier |= (1 << (usbKey -0xE0)) ;
+        ReportBuffer[1] |= (1 << (usbKey -0xE0)) ;
       }
     }
 
   // check normal keys:
   if (keyUp) 
     {
-      for (cnt = 0; cnt < sizeof keyReportBuffer.keycode; ++cnt)
+      for (cnt = 2; cnt < sizeof ReportBuffer; ++cnt)
         {
-          if (keyReportBuffer.keycode[cnt] == usbKey)
+          if (ReportBuffer[cnt] == usbKey)
             {
-              keyReportBuffer.keycode[cnt] = 0;
+              ReportBuffer[cnt] = 0;
               break;
             }
         }
     }
   else 
     {
-      for (cnt = 0; cnt < sizeof keyReportBuffer.keycode; ++cnt)
+      for (cnt = 2; cnt < sizeof ReportBuffer; ++cnt)
         {
-          if (keyReportBuffer.keycode[cnt] == 0)
+          if (ReportBuffer[cnt] == 0)
             {
-              keyReportBuffer.keycode[cnt] = usbKey;
+              ReportBuffer[cnt] = usbKey;
               break;
             }
         }
@@ -181,6 +176,7 @@ ISR(USART_RXC_vect)
   receivedByte = UDR;
   
   if (buildUsbReport(receivedByte))
+    blinkB1();
     newUsartByte = 1;
 }
 
@@ -192,8 +188,8 @@ int main()
   uchar idleCounter = 0;
 
   // zeros in the report buffer:
-  for (i = 0; i < sizeof keyReportBuffer.keycode; ++i) 
-      keyReportBuffer.keycode[i] = 0;
+  for (i = 2; i < sizeof ReportBuffer; ++i) 
+      ReportBuffer[i] = 0;
 
   // enable 1 sec watchdog timer:
   wdt_enable(WDTO_1S);
@@ -252,7 +248,7 @@ int main()
         updateNeeded = 0;
         newUsartByte = 0;
         blinkB2();
-        usbSetInterrupt((void *)&keyReportBuffer, sizeof keyReportBuffer);
+        usbSetInterrupt(ReportBuffer, sizeof ReportBuffer);
       }
   }
 
