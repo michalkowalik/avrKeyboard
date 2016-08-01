@@ -251,7 +251,7 @@ int main()
         updateNeeded = 0;
         newUsartByte = 0;
         blinkB2();
-        usbSetInterrupt(&keyReportBuffer, sizeof keyReportBuffer);
+        usbSetInterrupt((void *)&keyReportBuffer, sizeof keyReportBuffer);
       }
   }
 
