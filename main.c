@@ -179,7 +179,6 @@ ISR(USART_RXC_vect)
   receivedByte = UDR;
   
   if (buildUsbReport(receivedByte))
-    blinkB1();
     newUsartByte = 1;
 }
 
@@ -239,7 +238,6 @@ int main()
             } 
             else 
               { // yes, it is time now
-                blinkB1();
                 updateNeeded = 1;
                 idleCounter = idleRate;
               }
@@ -250,7 +248,6 @@ int main()
       {
         updateNeeded = 0;
         newUsartByte = 0;
-        blinkB2();
         usbSetInterrupt((void *)&keyReportBuffer, sizeof keyReportBuffer);
       }
   }

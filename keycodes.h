@@ -64,6 +64,52 @@ enum ReportIds
 
 /* USB report descriptor, size must match usbconfig.h */
 
+PROGMEM const char usbHidReportDescriptor[80] = {
+    0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
+    0x09, 0x06,                    // USAGE (Keyboard)
+    0xa1, 0x01,                    // COLLECTION (Application)
+    0x85, 0x01,                    //   REPORT_ID (1)
+    0x05, 0x07,                    //   USAGE_PAGE (Keyboard) // 10
+    0x19, 0xe0,                    //   USAGE_MINIMUM (Keyboard LeftControl)
+    0x29, 0xe7,                    //   USAGE_MAXIMUM (Keyboard Right GUI)
+    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+    0x25, 0x01,                    //   LOGICAL_MAXIMUM (1)
+    0x75, 0x01,                    //   REPORT_SIZE (1) // 20
+    0x95, 0x08,                    //   REPORT_COUNT (8)
+    0x81, 0x02,                    //   INPUT (Data,Var,Abs)
+    0x95, 0x01,                    //   REPORT_COUNT (1)
+    0x75, 0x08,                    //   REPORT_SIZE (8)
+    0x81, 0x03,                    //   INPUT (Cnst,Var,Abs) // 30
+    0x95, 0x06,                    //   REPORT_COUNT (6)
+    0x75, 0x08,                    //   REPORT_SIZE (8)
+    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+    0x25, 0x65,                    //   LOGICAL_MAXIMUM (101)
+    0x05, 0x07,                    //   USAGE_PAGE (Keyboard) // 40
+    0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
+    0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
+    0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
+    0xc0,                          // END_COLLECTION // 47
+    
+    0x05, 0x0C,             // USAGE_PAGE (Consumer Devices)
+    0x09, 0x01,             // USAGE (Consumer Control)
+    0xa1, 0x01,             // COLLECTION (Application)
+    0x85, IDConsumer,      //   REPORT_ID (ID_Consumer)
+    0x15, 0x00,             //   LOGICAL_MINIMUM (0) // 10
+    0x25, 0x01,             //   LOGICAL_MAXIMUM (1)
+    0x09, CKEY_VolumeUp,    //   USAGE (Volume Up)
+    0x09, CKEY_VolumeDown,  //   USAGE (Volume Down)
+    0x75, 0x01,             //   REPORT_SIZE (1)
+    0x95, 0x02,             //   REPORT_COUNT (2) // 20
+    0x81, 0x02,             //   INPUT (Data,Var,Abs)
+    0x09, CKEY_Mute,        //   USAGE (Mute)
+    0x95, 0x01,             //   REPORT_COUNT (1)
+    0x81, 0x06,             //   INPUT (Data,Var,Rel)
+    0x95, 0x05,             //   REPORT_COUNT (5) // 30
+    0x81, 0x03,             //   INPUT (Cnst,Var,Abs)
+    0xc0                    //   33
+
+
+  /* == orig contents:
 PROGMEM const char usbHidReportDescriptor[98] = {
     // 65 bytes - keyboard collection
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
@@ -118,6 +164,8 @@ PROGMEM const char usbHidReportDescriptor[98] = {
     0x95, 0x05,                    //   REPORT_COUNT (5)
     0x81, 0x01,                    //   INPUT (Cnst,Ary,Abs)
     0xc0                           // END_COLLECTION
+
+  */
 };
 
 /// Codes for modifier-keys.
