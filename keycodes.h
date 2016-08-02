@@ -85,7 +85,7 @@ PROGMEM const char usbHidReportDescriptor[63] = {
     0x95, 0x06,                    //   REPORT_COUNT (6)
     0x75, 0x08,                    //   REPORT_SIZE (8)
     0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
-    0x25, 0x65,                    //   LOGICAL_MAXIMUM (101)
+    0x25, 0xff,                    //   LOGICAL_MAXIMUM (101)
     0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
     0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
     0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
@@ -110,7 +110,7 @@ enum modifiers {
 
 
 PROGMEM const uint8_t  sunkeycodes[]= {
-  0,      0x78,   129,    0x79,   128,    58,     59,     67,	/* 0x00-0x07 */
+  0,      0x78,   0x6c,   0x79,   0x6d,   58,     59,     67,	/* 0x00-0x07 */
   60,     68,     61,     69,     62,     230,    63,     0,	/* 0x08-0x0f */
   64,     65,     66,     226,    82,     72,     70,     71,	/* 0x10-0x17 */
   80,     0x76,   0x7A,   81,     79,     41,     30,     31,	/* 0x18-0x1f */
