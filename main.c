@@ -7,7 +7,6 @@
 
 static int newUsartByte = 0;
 static report_keyboard keyReportBuffer;
-static report_consumer conReportBuffer;
 volatile static uchar LED_state = 0xff;
 
 // repeat rate for keyboards
@@ -24,7 +23,6 @@ static void uart_putchar(uchar c)
 usbMsgLen_t usbFunctionSetup(uchar data[8]) 
 {
   usbRequest_t *rq = (void *)data;
-  uchar reportType;
 
   if((rq -> bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_CLASS)
     {
@@ -32,24 +30,19 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
         {
           // send "no keys pressed" if asked here
         case USBRQ_HID_GET_REPORT:
-          reportType = rq->wValue.bytes[0];
-          if (reportType == 1) // keyboard
+          if(rq -> wValue.bytes[0] == 1)
             {
               usbMsgPtr = &keyReportBuffer;
+              keyReportBuffer.id = 1; // keyboard
+              keyReportBuffer.modifier = 0;
+              keyReportBuffer.keycode[0] = 0;
               return sizeof(keyReportBuffer);
-            }
-          else if (reportType == 2) //consumer
-            {
-              usbMsgPtr = &conReportBuffer;
-              return sizeof(conReportBuffer);
-            }
-          else
-            {
-              // no such report type:
-              return 0;
-            }
+            } 
+          else 
+            // no such a descriptor:
+            return 0;
 
-          // if wLength == 1 -> led state
+        // if wLength == 1 -> led state
         case USBRQ_HID_SET_REPORT:
           return (rq -> wLength.word == 1) ? USB_NO_MSG : 0;
 
@@ -65,7 +58,7 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
         }
     }
 
-  // by default don't return any data:
+  // default:
   return 0;
 }
 
@@ -83,9 +76,11 @@ static uchar buildUsbReport(uchar rb)
   if(usbKey == 0)
     return 0;
 
-  // Report ID:
-  keyReportBuffer.id = IDKeyboard;
-  // check modifier if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
+  // Return ID: 
+  keyReportBuffer.id = 1;
+
+  // check modifier 
+  if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
     {
       if (keyUp)
         {
@@ -174,13 +169,29 @@ static int usartInit()
 ISR(USART_RXC_vect)
 {
   char receivedByte;
-  
+    
   // Fetch the recieved byte value into the variable "ByteReceived"
   receivedByte = UDR;
   
   if (buildUsbReport(receivedByte))
     newUsartByte = 1;
 }
+
+
+// guarantee the data is sent to computer only once:
+void usbSendHidReport(uchar *data, uchar len)
+{
+  while(1)
+    {
+      usbPoll();
+      if(usbInterruptIsReady())
+        {
+          usbSetInterrupt(data, len);
+          break;
+        }
+    }
+}
+
 
 int main() 
 {
@@ -214,7 +225,7 @@ int main()
 
   usbDeviceConnect();
 
-  blinkB1();
+  blinkB2();
 
   // enable interrupts:
   sei();
@@ -225,7 +236,6 @@ int main()
 
     // do I really need it?
     updateNeeded = newUsartByte;
-
 
     // check timer if we need periodic reports
     if (TIFR & (1 << TOV0))
