@@ -36,9 +36,9 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
               return sizeof(keyReportBuffer);
             } 
           else 
-            // no such a descriptor:
+            //no such descriptor:
             return 0;
-
+          
         // if wLength == 1 -> led state
         case USBRQ_HID_SET_REPORT:
           return (rq -> wLength.word == 1) ? USB_NO_MSG : 0;
@@ -74,7 +74,7 @@ static uchar buildUsbReport(uchar rb)
     return 0;
 
   // Return ID: 
-  keyReportBuffer.id = 1;
+  //  keyReportBuffer.id = 75;
 
   // check modifier 
   if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
@@ -228,7 +228,7 @@ int main()
   sei();
 
   // manually set report ID:
-  keyReportBuffer.id = 1;
+  // keyReportBuffer.id = 75;
 
   while(1) {
     wdt_reset();
