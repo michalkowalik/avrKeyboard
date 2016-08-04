@@ -28,17 +28,17 @@
 #define SKBD_ALLUP          0x7f
 
 /* Special Keys */
-#define SKBD_HELP		 0x76
-#define SKBD_STOP		 0x01
+#define SKBD_HELP	 0x76
+#define SKBD_STOP	 0x01
 #define SKBD_AGAIN	 0x03
 #define SKBD_PROPS	 0x19
-#define SKBD_UNDO		 0x1a
+#define SKBD_UNDO	 0x1a
 #define SKBD_FRONT	 0x31
-#define SKBD_COPY		 0x33
-#define SKBD_OPEN		 0x48
+#define SKBD_COPY	 0x33
+#define SKBD_OPEN	 0x48
 #define SKBD_PASTE	 0x49
-#define SKBD_FIND		 0x5f
-#define SKBD_CUT		 0x61
+#define SKBD_FIND	 0x5f
+#define SKBD_CUT	 0x61
 #define SKBD_POWER	 0x30
 
 #define KEY_VOL_UP   0x04
