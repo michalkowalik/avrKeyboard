@@ -88,7 +88,7 @@ static uchar buildUsbReport(uchar rb)
         }
       else 
         {
-          keyReportBuffer.modifier |= (1 << (usbKey -0xE0)) ;
+          keyReportBuffer.modifier |= (1 << (usbKey - 0xE0)) ;
         }
     }
 
@@ -170,7 +170,7 @@ ISR(USART_RXC_vect)
 {
   char receivedByte;
     
-  // Fetch the recieved byte value into the variable "ByteReceived"
+  // Fetch the recieved byte value into the variable:
   receivedByte = UDR;
   
   if (buildUsbReport(receivedByte))
