@@ -68,7 +68,7 @@ PROGMEM const char usbHidReportDescriptor[80] = {
     0x25, 0x01,                    //   LOGICAL_MAXIMUM (1)
     0x75, 0x01,                    //   REPORT_SIZE (1)  // 20
     0x95, 0x08,                    //   REPORT_COUNT (8) 
-    0x81, 0x02,                    //   INPUT (Data,Var,Abs)
+    0x81, 0x03,                    //   INPUT (Data,Var,Abs) // Why this change? and what does it actually do? - used to be 2 here!
     0x95, 0x01,                    //   REPORT_COUNT (1)
     0x75, 0x08,                    //   REPORT_SIZE (8)
     0x81, 0x03,                    //   INPUT (Cnst,Var,Abs) // 30

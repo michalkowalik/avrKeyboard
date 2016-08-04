@@ -33,9 +33,6 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
           if(rq -> wValue.bytes[0] == 1)
             {
               usbMsgPtr = &keyReportBuffer;
-              keyReportBuffer.id = 1; // keyboard
-              keyReportBuffer.modifier = 0;
-              keyReportBuffer.keycode[0] = 0;
               return sizeof(keyReportBuffer);
             } 
           else 
@@ -229,6 +226,9 @@ int main()
 
   // enable interrupts:
   sei();
+
+  // manually set report ID:
+  keyReportBuffer.id = 1;
 
   while(1) {
     wdt_reset();
