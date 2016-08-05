@@ -56,11 +56,11 @@ enum HID_ConsumerCodes
 
 
 
-PROGMEM const char usbHidReportDescriptor[65] = {
+PROGMEM const char usbHidReportDescriptor[64] = {
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
     0x09, 0x06,                    // USAGE (Keyboard)
     0xa1, 0x01,                    // COLLECTION (Application)
-    0x85, 0x01,                    //   REPORT_ID (75)
+    //    0x85, 0x01,                    //   REPORT_ID (75)
     0x05, 0x07,                    //   USAGE_PAGE (Keyboard) //10
     0x19, 0xe0,                    //   USAGE_MINIMUM (Keyboard LeftControl)
     0x29, 0xe7,                    //   USAGE_MAXIMUM (Keyboard Right GUI)
@@ -85,12 +85,12 @@ PROGMEM const char usbHidReportDescriptor[65] = {
     0x95, 0x06,                    //   REPORT_COUNT (6) //50
     0x75, 0x08,                    //   REPORT_SIZE (8)
     0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
-    0x25, 0xff,                    //   LOGICAL_MAXIMUM (255)
+    0x26, 0xff, 0x00,              //   LOGICAL_MAXIMUM (255)
     0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
-    0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated)) // 60
-    0x29, 0x7f,                    //   USAGE_MAXIMUM (Keyboard Application)
+    0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated)) // 61
+    0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
     0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
-    0xc0                           // END_COLLECTION // 65
+    0xc0                           // END_COLLECTION // 66
 };
 
 /// Codes for modifier-keys.
@@ -107,11 +107,18 @@ enum modifiers {
 };
 
 
-
+// standard v.down = 129
+// standard v.up = 128
+// replaced with f17 and f18
 
 PROGMEM const uint8_t  sunkeycodes[]= {
-  0,      0x78,   129,    0x79,   128,    58,     59,     67,	/* 0x00-0x07 */
+/*?       stop    v.down  again   v.up    f1      f2      f10  */
+  0,      0x78,   108,    0x79,   109,    58,     59,     67,	/* 0x00-0x07 */
+
+/*f3      f11     f4      f12     f5      AltGr   f6      NoKey*/
   60,     68,     61,     69,     62,     230,    63,     0,	/* 0x08-0x0f */
+
+/**/
   64,     65,     66,     226,    82,     72,     70,     71,	/* 0x10-0x17 */
   80,     0x76,   0x7A,   81,     79,     41,     30,     31,	/* 0x18-0x1f */
   32,     33,     34,     35,     36,     37,     38,     39,	/* 0x20-0x27 */
@@ -130,7 +137,7 @@ PROGMEM const uint8_t  sunkeycodes[]= {
 
 // keyboard buffer type:
 typedef struct {
-  uint8_t id;
+  //  uint8_t id;
   uint8_t modifier;
   uint8_t reserved;
   uint8_t keycode[6];

@@ -6,8 +6,11 @@
 #include "utils.h"
 
 static int newUsartByte = 0;
-static report_keyboard keyReportBuffer;
+//static report_keyboard keyReportBuffer;
 volatile static uchar LED_state = 0xff;
+
+static uint8_t report[] = {0, 0, 0, 0, 0, 0, 0, 0};
+
 
 // repeat rate for keyboards
 static uchar idleRate;
@@ -32,8 +35,19 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
         case USBRQ_HID_GET_REPORT:
           if(rq -> wValue.bytes[0] == 1)
             {
-              usbMsgPtr = &keyReportBuffer;
-              return sizeof(keyReportBuffer);
+              // keyReportBuffer.keycode[0] = 0;
+              //usbMsgPtr = &keyReportBuffer;
+              //return sizeof(keyReportBuffer);
+              report[0] = 0;
+              report[1] = 0;
+              report[2] = 0;
+              report[3] = 0;
+              report[4] = 0;
+              report[5] = 0;
+              report[6] = 0;
+              report[7] = 0;
+              usbMsgPtr = &report;
+              return sizeof report;
             } 
           else 
             //no such descriptor:
@@ -69,7 +83,7 @@ static uchar buildUsbReport(uchar rb)
   uchar cnt;
 
   // Set report ID: 
-  keyReportBuffer.id = 1;
+  //   keyReportBuffer.id = 1;
 
   uchar usbKey = pgm_read_byte(&(sunkeycodes[rb & 0x7f]));
 
@@ -84,17 +98,22 @@ static uchar buildUsbReport(uchar rb)
     {
       if (keyUp)
         {
-          keyReportBuffer.modifier &= ~(1 << (usbKey - 0xE0));
+          // keyReportBuffer.modifier &= ~(1 << (usbKey - 0xE0));
+          report[0] &= ~(1 << (usbKey - 0xE0));
         }
       else 
         {
-          keyReportBuffer.modifier |= (1 << (usbKey - 0xE0)) ;
+          // keyReportBuffer.modifier |= (1 << (usbKey - 0xE0)) ;
+          report[0] |= (1 << (usbKey - 0xE0)) ;
         }
+      // return key pressed:
+      return 1;
     }
 
   // check normal keys:
   if (keyUp) 
     {
+      /*
       for (cnt = 0; cnt < sizeof keyReportBuffer.keycode; ++cnt)
         {
           if (keyReportBuffer.keycode[cnt] == usbKey)
@@ -103,14 +122,33 @@ static uchar buildUsbReport(uchar rb)
               break;
             }
         }
+      */
+      for (cnt = 2; cnt < sizeof report; cnt++)
+        {
+          if (report[cnt] == usbKey)
+            {
+              report[cnt] = 0;
+              break;
+            }
+        }
     }
   else 
     {
+      /*
       for (cnt = 0; cnt < sizeof keyReportBuffer.keycode; ++cnt)
         {
           if (keyReportBuffer.keycode[cnt] == 0)
             {
               keyReportBuffer.keycode[cnt] = usbKey;
+              break;
+            }
+        }
+      */
+      for (cnt = 2; cnt < sizeof report; cnt++)
+        {
+          if (report[cnt] == 0)
+            {
+              report[cnt] = usbKey;
               break;
             }
         }
@@ -204,11 +242,14 @@ int main()
   uchar idleCounter = 0;
 
   // manually set report ID:
-  keyReportBuffer.id = 1;
+  //  keyReportBuffer.id = 1;
+
+  // zero in reserved buffer field:
+  // keyReportBuffer.reserved = 0;
 
   // zeros in the report buffer:
-  for (i = 0; i < sizeof keyReportBuffer.keycode; ++i) 
-      keyReportBuffer.keycode[i] = 0;
+  // for (i = 0; i < 6; i++) 
+  //    keyReportBuffer.keycode[i] = 0;
 
   // enable 1 sec watchdog timer:
   wdt_enable(WDTO_1S);
@@ -264,7 +305,7 @@ int main()
       {
         updateNeeded = 0;
         newUsartByte = 0;
-        usbSetInterrupt((void *)&keyReportBuffer, sizeof keyReportBuffer);
+        usbSetInterrupt(&report, sizeof report);
       }
   }
 
