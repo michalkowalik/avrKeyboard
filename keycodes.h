@@ -56,11 +56,11 @@ enum HID_ConsumerCodes
 
 
 
-PROGMEM const char usbHidReportDescriptor[63] = {
+PROGMEM const char usbHidReportDescriptor[65] = {
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
     0x09, 0x06,                    // USAGE (Keyboard)
     0xa1, 0x01,                    // COLLECTION (Application)
-    // 0x85, 0x4B,                    //   REPORT_ID (75)
+    0x85, 0x01,                    //   REPORT_ID (75)
     0x05, 0x07,                    //   USAGE_PAGE (Keyboard) //10
     0x19, 0xe0,                    //   USAGE_MINIMUM (Keyboard LeftControl)
     0x29, 0xe7,                    //   USAGE_MAXIMUM (Keyboard Right GUI)
@@ -85,11 +85,10 @@ PROGMEM const char usbHidReportDescriptor[63] = {
     0x95, 0x06,                    //   REPORT_COUNT (6) //50
     0x75, 0x08,                    //   REPORT_SIZE (8)
     0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
-    0x25, 0xff,                    //   LOGICAL_MAXIMUM (101)
+    0x25, 0xff,                    //   LOGICAL_MAXIMUM (255)
     0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
-    0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no
-                                   //   event indicated)) // 60
-    0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
+    0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated)) // 60
+    0x29, 0x7f,                    //   USAGE_MAXIMUM (Keyboard Application)
     0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
     0xc0                           // END_COLLECTION // 65
 };
@@ -131,7 +130,7 @@ PROGMEM const uint8_t  sunkeycodes[]= {
 
 // keyboard buffer type:
 typedef struct {
-  //  uint8_t id;
+  uint8_t id;
   uint8_t modifier;
   uint8_t reserved;
   uint8_t keycode[6];

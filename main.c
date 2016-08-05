@@ -74,7 +74,7 @@ static uchar buildUsbReport(uchar rb)
     return 0;
 
   // Return ID: 
-  //  keyReportBuffer.id = 75;
+  keyReportBuffer.id = 1;
 
   // check modifier 
   if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
@@ -88,6 +88,9 @@ static uchar buildUsbReport(uchar rb)
           keyReportBuffer.modifier |= (1 << (usbKey - 0xE0)) ;
         }
     }
+
+  // check if macro key:
+  // TODO
 
   // check normal keys:
   if (keyUp) 
@@ -176,6 +179,7 @@ ISR(USART_RXC_vect)
 
 
 // guarantee the data is sent to computer only once:
+// unused so far!
 void usbSendHidReport(uchar *data, uchar len)
 {
   while(1)
@@ -196,6 +200,9 @@ int main()
   uchar i;
 
   uchar idleCounter = 0;
+
+  // manually set report ID:
+  keyReportBuffer.id = 75;
 
   // zeros in the report buffer:
   for (i = 0; i < sizeof keyReportBuffer.keycode; ++i) 
@@ -226,9 +233,6 @@ int main()
 
   // enable interrupts:
   sei();
-
-  // manually set report ID:
-  // keyReportBuffer.id = 75;
 
   while(1) {
     wdt_reset();
