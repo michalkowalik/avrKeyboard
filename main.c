@@ -206,6 +206,7 @@ int main()
 
   uchar idleCounter = 0;
 
+  // wait for keyboard to initialize and send the status report
   _delay_ms(1000);
 
   // enable 1 sec watchdog timer:
