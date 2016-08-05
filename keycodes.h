@@ -56,7 +56,7 @@ enum HID_ConsumerCodes
 
 
 
-PROGMEM const char usbHidReportDescriptor[64] = {
+PROGMEM const char usbHidReportDescriptor[65] = {
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
     0x09, 0x06,                    // USAGE (Keyboard)
     0xa1, 0x01,                    // COLLECTION (Application)
@@ -88,7 +88,8 @@ PROGMEM const char usbHidReportDescriptor[64] = {
     0x26, 0xff, 0x00,              //   LOGICAL_MAXIMUM (255)
     0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
     0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated)) // 61
-    0x29, 0x65,                    //   USAGE_MAXIMUM (Keyboard Application)
+    //0x29, 0x65,                  //   USAGE_MAXIMUM (Keyboard Application)
+    0x2a, 0xff, 0x00,              //   USAGE_MAXIMUM (Keyboard Application)
     0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
     0xc0                           // END_COLLECTION // 66
 };
@@ -122,7 +123,9 @@ PROGMEM const uint8_t  sunkeycodes[]= {
   64,     65,     66,     226,    82,     72,     70,     71,	/* 0x10-0x17 */
   80,     0x76,   0x7A,   81,     79,     41,     30,     31,	/* 0x18-0x1f */
   32,     33,     34,     35,     36,     37,     38,     39,	/* 0x20-0x27 */
-  45,     46,     53,     42,     73,     0x7f,   84,     85,	/* 0x28-0x2f */
+  
+/*                                        mute                 */
+  45,     46,     53,     42,     73,     0x6b,   84,     85,	/* 0x28-0x2f */
   0x66,   0x77,   99,     0x7C,   74,     43,     20,     26,	/* 0x30-0x37 */
   8,      21,     23,     28,     24,     12,     18,     19,	/* 0x38-0x3f */
   47,     48,     76,     101,    95,     96,     97,     86,	/* 0x40-0x47 */
@@ -135,6 +138,7 @@ PROGMEM const uint8_t  sunkeycodes[]= {
   227,    44,     231,    78,     0,      87,     0,      0 	/* 0x78-0x7f */
 };
 
+/*
 // keyboard buffer type:
 typedef struct {
   //  uint8_t id;
@@ -142,5 +146,5 @@ typedef struct {
   uint8_t reserved;
   uint8_t keycode[6];
 } report_keyboard;
-
+*/
 

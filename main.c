@@ -9,7 +9,8 @@ static int newUsartByte = 0;
 //static report_keyboard keyReportBuffer;
 volatile static uchar LED_state = 0xff;
 
-static uint8_t report[] = {0, 0, 0, 0, 0, 0, 0, 0};
+static uint8_t report[] = {0, 0, 0, 0, 
+                           0, 0, 0, 0};
 
 
 // repeat rate for keyboards
@@ -113,16 +114,6 @@ static uchar buildUsbReport(uchar rb)
   // check normal keys:
   if (keyUp) 
     {
-      /*
-      for (cnt = 0; cnt < sizeof keyReportBuffer.keycode; ++cnt)
-        {
-          if (keyReportBuffer.keycode[cnt] == usbKey)
-            {
-              keyReportBuffer.keycode[cnt] = 0;
-              break;
-            }
-        }
-      */
       for (cnt = 2; cnt < sizeof report; cnt++)
         {
           if (report[cnt] == usbKey)
@@ -134,16 +125,6 @@ static uchar buildUsbReport(uchar rb)
     }
   else 
     {
-      /*
-      for (cnt = 0; cnt < sizeof keyReportBuffer.keycode; ++cnt)
-        {
-          if (keyReportBuffer.keycode[cnt] == 0)
-            {
-              keyReportBuffer.keycode[cnt] = usbKey;
-              break;
-            }
-        }
-      */
       for (cnt = 2; cnt < sizeof report; cnt++)
         {
           if (report[cnt] == 0)
@@ -218,22 +199,6 @@ ISR(USART_RXC_vect)
 }
 
 
-// guarantee the data is sent to computer only once:
-// unused so far!
-void usbSendHidReport(uchar *data, uchar len)
-{
-  while(1)
-    {
-      usbPoll();
-      if(usbInterruptIsReady())
-        {
-          usbSetInterrupt(data, len);
-          break;
-        }
-    }
-}
-
-
 int main() 
 {
   uint8_t updateNeeded = 0;
@@ -241,15 +206,7 @@ int main()
 
   uchar idleCounter = 0;
 
-  // manually set report ID:
-  //  keyReportBuffer.id = 1;
-
-  // zero in reserved buffer field:
-  // keyReportBuffer.reserved = 0;
-
-  // zeros in the report buffer:
-  // for (i = 0; i < 6; i++) 
-  //    keyReportBuffer.keycode[i] = 0;
+  _delay_ms(1000);
 
   // enable 1 sec watchdog timer:
   wdt_enable(WDTO_1S);
@@ -265,6 +222,11 @@ int main()
 
   // force re-enumeration:
   usbDeviceDisconnect();
+
+  // clean the report buffer:
+  for(i = 0; i < sizeof report; i++)
+    report[i] = 0;
+
   for(i = 0; i < 250; i++) {
     wdt_reset();
     _delay_ms(2);
