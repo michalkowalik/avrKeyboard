@@ -68,13 +68,16 @@ static uchar buildUsbReport(uchar rb)
   uchar keyUp = rb & 0x80;
   uchar cnt;
 
+  // Set report ID: 
+  keyReportBuffer.id = 1;
+
   uchar usbKey = pgm_read_byte(&(sunkeycodes[rb & 0x7f]));
 
   if(usbKey == 0)
     return 0;
 
-  // Return ID: 
-  keyReportBuffer.id = 1;
+  // check if macro key:
+  // TODO
 
   // check modifier 
   if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
@@ -88,9 +91,6 @@ static uchar buildUsbReport(uchar rb)
           keyReportBuffer.modifier |= (1 << (usbKey - 0xE0)) ;
         }
     }
-
-  // check if macro key:
-  // TODO
 
   // check normal keys:
   if (keyUp) 
@@ -120,7 +120,9 @@ static uchar buildUsbReport(uchar rb)
   return 1;
 }
 
-
+// TODO:
+// Check if it may be the part of the problem?
+// there's no ID anywhere here
 usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len)
 {
   uchar cLED = 0;
@@ -202,7 +204,7 @@ int main()
   uchar idleCounter = 0;
 
   // manually set report ID:
-  keyReportBuffer.id = 75;
+  keyReportBuffer.id = 1;
 
   // zeros in the report buffer:
   for (i = 0; i < sizeof keyReportBuffer.keycode; ++i) 
