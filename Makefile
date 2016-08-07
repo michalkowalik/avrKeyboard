@@ -12,7 +12,7 @@ OBJFLAGS = -j .text -j .data -O ihex
 DUDEFLAGS = -p m8 -c usbasp -v
 
 # Object files for the firmware (usbdrv/oddebug.o not strictly needed I think)
-OBJECTS = usbdrv/usbdrv.o usbdrv/oddebug.o usbdrv/usbdrvasm.o main.o
+OBJECTS = usbdrv/usbdrv.o usbdrv/oddebug.o usbdrv/usbdrvasm.o utils.o main.o
 
 # Command-line client
 #CMDLINE = usbtest.exe

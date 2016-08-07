@@ -1,14 +1,17 @@
 /*
   Michal Kowalik, 2016
  */
-
 #include "sun_defs.h"
 #include "keycodes.h"
-
+#include "utils.h"
 
 static int newUsartByte = 0;
-static report_t reportBuffer;
+//static report_keyboard keyReportBuffer;
 volatile static uchar LED_state = 0xff;
+
+static uint8_t report[] = {0, 0, 0, 0, 
+                           0, 0, 0, 0};
+
 
 // repeat rate for keyboards
 static uchar idleRate;
@@ -31,12 +34,19 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
         {
           // send "no keys pressed" if asked here
         case USBRQ_HID_GET_REPORT:
-          usbMsgPtr = (void *)&reportBuffer;
-          reportBuffer.modifier = 0;
-          reportBuffer.keycode[0] = 0;
-          return sizeof(reportBuffer);
-
-          // if wLength == 1 -> led state
+          if(rq -> wValue.bytes[0] == 1)
+            {
+              // send no key -- no modifier, no keystroke
+              report[0] = 0;
+              report[2] = 0;
+              usbMsgPtr = &report;
+              return sizeof report;
+            } 
+          else 
+            //no such descriptor:
+            return 0;
+          
+        // if wLength == 1 -> led state
         case USBRQ_HID_SET_REPORT:
           return (rq -> wLength.word == 1) ? USB_NO_MSG : 0;
 
@@ -52,25 +62,9 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
         }
     }
 
-  // by default don't return any data:
+  // default:
   return 0;
 }
-
-void blinkB1()
-{
-  PORTB |= 1 << PB1;
-  _delay_ms(50);
-  PORTB &= ~(1 << PB1);
-}
-
-void blinkB2()
-{
-  PORTB |= 1 << PB2;
-  _delay_ms(50);
-  PORTB &= ~(1 << PB2);
-}
-
-
 
 // build USB report buffer - 
 // based on the array in keycodes.h
@@ -86,39 +80,39 @@ static uchar buildUsbReport(uchar rb)
   if(usbKey == 0)
     return 0;
 
- 
-  // check modifier keys:
+  // check if macro key:
+  // TODO
+
+  // check modifier 
   if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
     {
       if (keyUp)
-        {
-          reportBuffer.modifier &= ~(1 << (usbKey - 0xE0));
-        }
+          report[0] &= ~(1 << (usbKey - 0xE0));
       else 
-        {
-          reportBuffer.modifier |= (1 << (usbKey -0xE0)) ;
-        }
+          report[0] |= (1 << (usbKey - 0xE0)) ;
+      // return key pressed:
+      return 1;
     }
 
   // check normal keys:
   if (keyUp) 
     {
-      for (cnt = 0; cnt < sizeof reportBuffer.keycode; ++cnt)
+      for (cnt = 2; cnt < sizeof report; cnt++)
         {
-          if (reportBuffer.keycode[cnt] == usbKey)
+          if (report[cnt] == usbKey)
             {
-              reportBuffer.keycode[cnt] = 0;
+              report[cnt] = 0;
               break;
             }
         }
     }
   else 
     {
-      for (cnt = 0; cnt < sizeof reportBuffer.keycode; ++cnt)
+      for (cnt = 2; cnt < sizeof report; cnt++)
         {
-          if (reportBuffer.keycode[cnt] == 0)
+          if (report[cnt] == 0)
             {
-              reportBuffer.keycode[cnt] = usbKey;
+              report[cnt] = usbKey;
               break;
             }
         }
@@ -128,7 +122,9 @@ static uchar buildUsbReport(uchar rb)
   return 1;
 }
 
-
+// TODO:
+// Check if it may be the part of the problem?
+// there's no ID anywhere here
 usbMsgLen_t usbFunctionWrite(uint8_t * data, uchar len)
 {
   uchar cLED = 0;
@@ -176,13 +172,14 @@ static int usartInit()
 ISR(USART_RXC_vect)
 {
   char receivedByte;
-  
-  // Fetch the recieved byte value into the variable "ByteReceived"
+    
+  // Fetch the recieved byte value into the variable:
   receivedByte = UDR;
   
   if (buildUsbReport(receivedByte))
     newUsartByte = 1;
 }
+
 
 int main() 
 {
@@ -191,9 +188,8 @@ int main()
 
   uchar idleCounter = 0;
 
-  // zeros in the report buffer:
-  for (i = 0; i < sizeof reportBuffer.keycode; ++i) 
-      reportBuffer.keycode[i] = 0;
+  // wait for keyboard to initialize and send the status report
+  _delay_ms(1000);
 
   // enable 1 sec watchdog timer:
   wdt_enable(WDTO_1S);
@@ -205,10 +201,16 @@ int main()
   _delay_ms(100);
   usbInit();
 
-  TCCR0 = 5;      /* timer 0 prescaler: 1024 */
+  /* timer 0 prescaler: 1024 */
+  TCCR0 = 5;      
 
   // force re-enumeration:
   usbDeviceDisconnect();
+
+  // clean the report buffer:
+  for(i = 0; i < sizeof report; i++)
+    report[i] = 0;
+
   for(i = 0; i < 250; i++) {
     wdt_reset();
     _delay_ms(2);
@@ -216,7 +218,7 @@ int main()
 
   usbDeviceConnect();
 
-  blinkB1();
+  blinkB2();
 
   // enable interrupts:
   sei();
@@ -227,7 +229,6 @@ int main()
 
     // do I really need it?
     updateNeeded = newUsartByte;
-
 
     // check timer if we need periodic reports
     if (TIFR & (1 << TOV0))
@@ -250,7 +251,7 @@ int main()
       {
         updateNeeded = 0;
         newUsartByte = 0;
-        usbSetInterrupt((void *)&reportBuffer, sizeof reportBuffer);
+        usbSetInterrupt(&report, sizeof report);
       }
   }
 
