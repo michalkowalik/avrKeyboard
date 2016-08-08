@@ -41,10 +41,7 @@
 #define SKBD_CUT	 0x61
 #define SKBD_POWER	 0x30
 
-#define KEY_VOL_UP   0x04
-#define KEY_VOL_DOWN 0x02
-#define KEY_VOL_MUTE 0x2D
-#define KEY_POWER    0x30
+
 #define KEY_COMPOSE  0x43
 
 enum HID_ConsumerCodes
@@ -92,19 +89,6 @@ PROGMEM const char usbHidReportDescriptor[65] = {
     0xc0                           // END_COLLECTION // 66
 };
 
-/// Codes for modifier-keys.
-enum modifiers {
-    MOD_NONE          = 0,
-    MOD_CONTROL_LEFT  = (1 << 0),
-    MOD_SHIFT_LEFT    = (1 << 1),
-    MOD_ALT_LEFT      = (1 << 2),
-    MOD_GUI_LEFT      = (1 << 3),
-    MOD_CONTROL_RIGHT = (1 << 4),
-    MOD_SHIFT_RIGHT   = (1 << 5),
-    MOD_ALT_RIGHT     = (1 << 6),
-    MOD_GUI_RIGHT     = (1 << 7),
-};
-
 
 // standard v.down = 129
 // standard v.up = 128
@@ -124,7 +108,9 @@ PROGMEM const uint8_t  sunkeycodes[]= {
   
 /*                                        mute                 */
   45,     46,     53,     42,     73,     0x6b,   84,     85,	/* 0x28-0x2f */
-  0x66,   0x77,   99,     0x7C,   74,     43,     20,     26,	/* 0x30-0x37 */
+
+/*power                                                        */
+  0x6e,   0x77,   99,     0x7C,   74,     43,     20,     26,	/* 0x30-0x37 */
   8,      21,     23,     28,     24,     12,     18,     19,	/* 0x38-0x3f */
   47,     48,     76,     101,    95,     96,     97,     86,	/* 0x40-0x47 */
   0x74,   0x7D,   77,     0,      224,    4,      22,     7,	/* 0x48-0x4f */
@@ -132,7 +118,9 @@ PROGMEM const uint8_t  sunkeycodes[]= {
   49,     40,     88,     92,     93,     94,     98,     0x7E,	/* 0x58-0x5f */
   75,     0x7B,   83,     225,    29,     27,     6,      25,	/* 0x60-0x67 */
   5,      17,     16,     54,     55,     56,     229,    0,	/* 0x68-0x6f */
-  89,     90,     91,     0,      0,      0,      0x75,   57,	/* 0x70-0x77 */
+
+/*                                                help         */
+  89,     90,     91,     0,      0,      0,      0x3A,   57,	/* 0x70-0x77 */
   227,    44,     231,    78,     0,      87,     0,      0 	/* 0x78-0x7f */
 };
 

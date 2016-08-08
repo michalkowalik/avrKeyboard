@@ -12,9 +12,13 @@ volatile static uchar LED_state = 0xff;
 static uint8_t report[] = {0, 0, 0, 0, 
                            0, 0, 0, 0};
 
-
 // repeat rate for keyboards
 static uchar idleRate;
+
+// set if replaying macro:
+// if set and macro replying done -> clean the buffer, remove all the
+// modifiers or saved keys.
+static uint8_t macroReplay = 0;
 
 // send byte to keyb:
 static void uart_putchar(uchar c)
@@ -81,7 +85,20 @@ static uchar buildUsbReport(uchar rb)
     return 0;
 
   // check if macro key:
-  // TODO
+  // (let's start with Find to send Ctrl + f):
+  if(rb == SKBD_FIND)
+    {
+      macroReplay = 1;
+
+      // set control:
+      report[0] |= (1 << 0);
+
+      // won't always work - requires empty buffer:
+      // send "f"
+      report[2] = 0x09;
+
+      return 1;
+    }
 
   // check modifier 
   if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
@@ -252,6 +269,14 @@ int main()
         updateNeeded = 0;
         newUsartByte = 0;
         usbSetInterrupt(&report, sizeof report);
+
+        // clean the report if macro replayed:
+        if(macroReplay)
+          {
+            macroReplay = 0;
+            report[0] = 0;
+            report[2] = 0;
+          }
       }
   }
 
