@@ -70,6 +70,83 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
   return 0;
 }
 
+// handle left side rows of special function keys:
+// return 0 if no macro key was pressed, 1 otherwise.
+// set the usb report buffer:
+uint8_t macroKey(uchar rb)
+{
+  uint8_t modifier = 0;
+  uint8_t key = 0;
+
+  switch(rb)
+    {
+      // ctrl + f
+    case SKBD_FIND:
+      key = 0x09;
+      modifier = 1;
+      break;
+
+      // f5:
+    case SKBD_AGAIN:
+      key = 0x3E;
+      break;
+      
+      // ctrl + c (stop and copy..)
+    case SKBD_STOP:
+    case SKBD_COPY:
+      key = 0x06;
+      modifier = 1;
+      break;
+
+      // ctrl + o for open
+    case SKBD_OPEN:
+      key = 0x12;
+      modifier = 1;
+      break;
+
+      // ctrl + v
+    case SKBD_PASTE:
+      key = 0x19;
+      modifier = 1;
+      break;
+
+    case SKBD_CUT:
+      key = 0x1B;
+      modifier = 1;
+      break;
+
+      // home(?)
+    case SKBD_FRONT:
+      key = 0x4A;
+      break;
+
+      // ctrl + z
+    case SKBD_UNDO:
+      key = 0x1D;
+      modifier = 1;
+      break;
+
+      // win context menu:
+    case SKBD_PROPS:
+      key = 0x65;
+      break;
+
+      // none of interesting keys:
+    default:
+      return 0;
+    }
+  
+  // if we are here, something of an interest happened
+  if(modifier)
+    report[0] |= (1 << 0);
+  
+  report[2] = key;
+  macroReplay = 1;
+
+  return 1;
+}
+
+
 // build USB report buffer - 
 // based on the array in keycodes.h
 static uchar buildUsbReport(uchar rb) 
@@ -85,20 +162,8 @@ static uchar buildUsbReport(uchar rb)
     return 0;
 
   // check if macro key:
-  // (let's start with Find to send Ctrl + f):
-  if(rb == SKBD_FIND)
-    {
-      macroReplay = 1;
-
-      // set control:
-      report[0] |= (1 << 0);
-
-      // won't always work - requires empty buffer:
-      // send "f"
-      report[2] = 0x09;
-
-      return 1;
-    }
+  if(macroKey(rb))
+    return 1;
 
   // check modifier 
   if ((usbKey >= 0xE0) && (usbKey <= 0xE7)) 
